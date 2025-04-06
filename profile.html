@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Career Path Planner</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">Career Path Planner</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="profile.html" class="active">Profile</a>
+            <a href="index.html#planner">Career Planner</a>
+            <a href="index.html#mentors">Mentors</a>
+            <a href="index.html#courses">Courses</a>
+        </div>
+        <div class="auth-buttons">
+            <button class="auth-button login-button" data-auth-action="login">Login</button>
+            <button class="auth-button signup-button" data-auth-action="signup">Sign Up</button>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Auth Modal -->
+        <div id="authModal" class="auth-modal">
+            <div class="auth-container">
+                <button class="close-button" data-auth-action="close">&times;</button>
+                <h2 id="authTitle">Login</h2>
+                <form id="authForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" required placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" required placeholder="Enter your password">
+                    </div>
+                    <div id="signupFields" style="display: none;">
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" placeholder="Enter your full name">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm Password</label>
+                            <input type="password" id="confirmPassword" placeholder="Confirm your password">
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-button" id="authSubmit">Login</button>
+                </form>
+                <p id="authSwitch" class="auth-switch">
+                    Don't have an account? <a href="#" data-auth-action="toggle">Sign up</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Profile Section -->
+        <section class="profile-section">
+            <h2>Your Profile</h2>
+            <div class="profile-container">
+                <form id="profileForm" class="profile-form">
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" required placeholder="Enter your full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dateOfBirth">Date of Birth</label>
+                        <input type="date" id="dateOfBirth" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="profileEmail" required placeholder="Enter your email">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" placeholder="Enter your phone number">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <textarea id="address" rows="3" placeholder="Enter your address"></textarea>
+                    </div>
+
+                    <h3>Education</h3>
+                    <div id="educationContainer">
+                        <div class="education-entry">
+                            <div class="form-group">
+                                <label for="degree">Degree</label>
+                                <select id="degree" required>
+                                    <option value="">Select degree</option>
+                                    <option value="high_school">High School</option>
+                                    <option value="diploma">Diploma</option>
+                                    <option value="bachelors">Bachelor's Degree</option>
+                                    <option value="masters">Master's Degree</option>
+                                    <option value="phd">PhD</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="field">Field of Study</label>
+                                <input type="text" id="field" required placeholder="e.g., Computer Science">
+                            </div>
+                            <div class="form-group">
+                                <label for="institution">Institution</label>
+                                <input type="text" id="institution" required placeholder="Enter institution name">
+                            </div>
+                            <div class="form-group">
+                                <label for="year">Year of Completion</label>
+                                <input type="number" id="year" required min="1950" max="2030">
+                            </div>
+                            <button type="button" class="remove-button" data-action="remove-education">Remove</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-button" data-action="add-education">Add Another Education</button>
+
+                    <h3>Career Interests</h3>
+                    <div class="form-group">
+                        <label for="careerField">Primary Career Field</label>
+                        <select id="careerField" onchange="updateInterests()" required>
+                            <option value="">Select career field</option>
+                            <option value="technology">Technology</option>
+                            <option value="science">Science</option>
+                            <option value="business">Business</option>
+                            <option value="arts">Arts & Design</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="education">Education</option>
+                            <option value="engineering">Engineering</option>
+                            <option value="sports">Sports</option>
+                            <option value="social">Social Sciences</option>
+                        </select>
+                    </div>
+
+                    <div id="interestsContainer" class="interests-container">
+                        <!-- Interests will be dynamically populated based on career field -->
+                    </div>
+
+                    <button type="submit" class="submit-button">Save Profile</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Career Path Planner. All rights reserved.</p>
+    </footer>
+
+    <script src="api.js" type="module"></script>
+    <script src="script.js" type="module"></script>
+</body>
+</html> 

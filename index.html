@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Path Planner</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">Career Path Planner</div>
+        <div class="nav-links">
+            <a href="#home" class="active">Home</a>
+            <a href="profile.html">Profile</a>
+            <a href="#planner">Career Planner</a>
+            <a href="#mentors">Mentors</a>
+            <a href="#courses">Courses</a>
+        </div>
+        <div class="auth-buttons">
+            <button class="auth-button login-button" data-auth-action="login">Login</button>
+            <button class="auth-button signup-button" data-auth-action="signup">Sign Up</button>
+        </div>
+    </nav>
+
+    <main>
+        <section id="home" class="hero">
+            <h1>Plan Your Career Path</h1>
+            <p>Get personalized career guidance based on your qualifications and interests</p>
+            <div class="hero-buttons">
+                <button class="auth-button signup-button" data-scroll-to="planner">Get Started</button>
+                <button class="auth-button login-button" data-auth-action="signup">Join Now</button>
+            </div>
+        </section>
+
+        <!-- Auth Modal -->
+        <div id="authModal" class="auth-modal">
+            <div class="auth-container">
+                <button class="close-button" data-auth-action="close">&times;</button>
+                <h2 id="authTitle">Login</h2>
+                <form id="authForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" required placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" required placeholder="Enter your password">
+                    </div>
+                    <div id="signupFields" style="display: none;">
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" placeholder="Enter your full name">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm Password</label>
+                            <input type="password" id="confirmPassword" placeholder="Confirm your password">
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-button" id="authSubmit">Login</button>
+                </form>
+                <p id="authSwitch" class="auth-switch">
+                    Don't have an account? <a href="#" data-auth-action="toggle">Sign up</a>
+                </p>
+            </div>
+        </div>
+
+        <section id="planner" class="planner-section">
+            <h2>AI-Powered Career Path Planner</h2>
+            <div class="form-container">
+                <form id="careerForm">
+                    <div class="form-group">
+                        <label for="qualification">Academic Qualification</label>
+                        <select id="qualification" required>
+                            <option value="">Select your qualification</option>
+                            <option value="high_school">High School</option>
+                            <option value="diploma">Diploma</option>
+                            <option value="bachelors">Bachelor's Degree</option>
+                            <option value="masters">Master's Degree</option>
+                            <option value="phd">PhD</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="field">Field of Study</label>
+                        <input type="text" id="field" placeholder="e.g., Computer Science, Business, Arts, Psychology" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Interests (Select multiple)</label>
+                        <div class="interests-container">
+                            <label class="interest-item">
+                                <input type="checkbox" value="programming"> Programming
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="data"> Data Analysis
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="design"> Design
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="business"> Business
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="science"> Science
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="engineering"> Engineering
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="creative_arts"> Creative Arts
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="social_sciences"> Social Sciences
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="humanities"> Humanities
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="health_medicine"> Health & Medicine
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="education"> Education
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="law"> Law
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="finance"> Finance & Accounting
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="marketing"> Marketing & Communications
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="psychology"> Psychology & Counseling
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="sociology"> Sociology
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="political_science"> Political Science
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="philosophy"> Philosophy
+                            </label>
+                            <label class="interest-item">
+                                <input type="checkbox" value="linguistics"> Linguistics
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-button">Generate Career Path</button>
+                </form>
+            </div>
+
+            <div id="careerPath" class="career-path-container hidden">
+                <h3>Your Career Path</h3>
+                <div class="flowchart" id="flowchart"></div>
+            </div>
+        </section>
+
+        <section id="mentors" class="mentors-section">
+            <h2>Available Mentors</h2>
+            <div class="mentors-grid" id="mentorsGrid">
+                <!-- Mentors will be dynamically added here -->
+            </div>
+        </section>
+
+        <section id="courses" class="courses-section">
+            <h2>Recommended Courses</h2>
+            <div class="courses-grid" id="coursesGrid">
+                <!-- Courses will be dynamically added here -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Career Path Planner. All rights reserved.</p>
+    </footer>
+
+    <script src="api.js" type="module"></script>
+    <script src="script.js" type="module"></script>
+</body>
+</html> 
