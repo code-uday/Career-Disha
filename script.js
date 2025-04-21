@@ -657,6 +657,12 @@ function setupFormHandlers() {
             console.log('Form values - Qualification:', qualification, 'Field:', field);
 
             try {
+                // Show loading state
+                const submitButton = careerForm.querySelector('button[type="submit"]');
+                const originalButtonText = submitButton.textContent;
+                submitButton.textContent = 'Generating Career Path...';
+                submitButton.disabled = true;
+                
                 console.log('Sending career suggestion request:', {
                     interests: selectedInterests,
                     qualification,
@@ -670,10 +676,26 @@ function setupFormHandlers() {
                 });
 
                 console.log('Career suggestions response:', response);
-                displayCareerPath(response.data);
+                
+                // Reset button state
+                submitButton.textContent = originalButtonText;
+                submitButton.disabled = false;
+                
+                // Display the career path
+                if (response && response.data) {
+                    displayCareerPath(response.data);
+                } else {
+                    console.error('Invalid response format:', response);
+                    showError('Invalid response format received from server');
+                }
             } catch (error) {
-                console.error(' Error getting career suggestions:', error);
+                console.error('Error getting career suggestions:', error);
                 showError('An error occurred while getting career suggestions. Please try again.');
+                
+                // Reset button state
+                const submitButton = careerForm.querySelector('button[type="submit"]');
+                submitButton.textContent = 'Generate Career Path';
+                submitButton.disabled = false;
             }
         });
     } else {
@@ -1034,89 +1056,102 @@ function getSelectedInterests() {
     return Array.from(interests).map(interest => interest.value);
 }
 
-// Display career path
-function displayCareerPath(careerPath) {
-    console.log('Displaying career path:', careerPath);
+// Function to display career path
+function displayCareerPath(careerData) {
+    console.log('Displaying career path with data:', careerData);
+    
     const careerPathSection = document.getElementById('careerPath');
-    if (!careerPathSection) {
-        console.error('Career path section not found');
+    const coursesGrid = document.getElementById('coursesGrid');
+    const mentorsGrid = document.getElementById('mentorsGrid');
+
+    // Check if careerData and required properties exist
+    if (!careerData || !careerData.careerPath) {
+        console.error('Invalid career data received:', careerData);
+        showError('Invalid career path data received');
         return;
     }
 
-    try {
-        // Remove the hidden class to make the container visible
-        careerPathSection.classList.remove('hidden');
-        
-        // Check if we have the expected data structure
-        if (!careerPath || !careerPath.careerPath) {
-            console.error('Invalid career path data structure:', careerPath);
-            showError('Invalid career path data received');
-            return;
-        }
+    // Make sure the career path section is visible
+    careerPathSection.classList.remove('hidden');
+    careerPathSection.style.display = 'block';
+    
+    // Extract data from the response
+    const { title, description, recommendedRoles, requiredSkills } = careerData.careerPath;
+    const recommendedCourses = careerData.recommendedCourses || [];
+    const recommendedMentors = careerData.recommendedMentors || [];
 
-        const { title, description, recommendedRoles, recommendedCourses } = careerPath.careerPath;
-        
-        // Create the HTML content
-        let html = `
-            <h2>${title || 'Career Path'}</h2>
-            <p>${description || 'No description available'}</p>
-        `;
+    console.log('Career path data:', {
+        title,
+        description,
+        recommendedRoles,
+        requiredSkills,
+        recommendedCourses,
+        recommendedMentors
+    });
 
-        // Add recommended roles if available
-        if (recommendedRoles && recommendedRoles.length > 0) {
-            html += `
-                <h3>Recommended Roles</h3>
-                <div class="roles">
-                    ${recommendedRoles.map(role => `
-                        <div class="role">
-                            <h4>${role.title || 'Role Title'}</h4>
-                            <p>${role.description || 'No description available'}</p>
-                            ${role.salary ? `<p><strong>Salary:</strong> ${role.salary}</p>` : ''}
-                            ${role.skills && role.skills.length > 0 ? `
-                                <h5>Required Skills:</h5>
-                                <ul>
-                                    ${role.skills.map(skill => `<li>${skill}</li>`).join('')}
-                                </ul>
-                            ` : ''}
-                            ${role.nextSteps && role.nextSteps.length > 0 ? `
-                                <h5>Next Steps:</h5>
-                                <ul>
-                                    ${role.nextSteps.map(step => `<li>${step}</li>`).join('')}
-                                </ul>
-                            ` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
+    // Display career path
+    careerPathSection.innerHTML = `
+        <h2>${title || 'Career Path'}</h2>
+        <p>${description || 'No description available'}</p>
+        <div class="roles">
+            <h3>Recommended Roles</h3>
+            <ul>
+                ${(recommendedRoles || []).map(role => `
+                    <li>${role}</li>
+                `).join('')}
+            </ul>
+        </div>
+        <div class="skills">
+            <h3>Required Skills</h3>
+            <ul>
+                ${(requiredSkills || []).map(skill => `
+                    <li>${skill}</li>
+                `).join('')}
+            </ul>
+        </div>
+    `;
 
-        // Add recommended courses if available
-        if (recommendedCourses && recommendedCourses.length > 0) {
-            html += `
-                <h3>Recommended Courses</h3>
-                <div class="courses">
-                    ${recommendedCourses.map(course => `
-                        <div class="course">
-                            <h4>${course.title || 'Course Title'}</h4>
-                            ${course.provider ? `<p><strong>Provider:</strong> ${course.provider}</p>` : ''}
-                            ${course.level ? `<p><strong>Level:</strong> ${course.level}</p>` : ''}
-                            ${course.duration ? `<p><strong>Duration:</strong> ${course.duration}</p>` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        // Update the career path section with the generated HTML
-        careerPathSection.innerHTML = html;
-        careerPathSection.style.display = 'block';
-    } catch (error) {
-        console.error('Error displaying career path:', error);
-        showError('An error occurred while displaying career suggestions');
+    // Display recommended courses in the courses section
+    if (coursesGrid) {
+        coursesGrid.innerHTML = recommendedCourses.map(course => `
+            <div class="course">
+                <h4>${course.title || 'Course Title'}</h4>
+                <p><strong>Provider:</strong> ${course.provider || 'N/A'}</p>
+                <p><strong>Level:</strong> ${course.level || 'N/A'}</p>
+                <p><strong>Duration:</strong> ${course.duration || 'N/A'}</p>
+                ${course.link ? `
+                    <div class="course-actions">
+                        <a href="${course.link}" target="_blank" class="course-link">
+                            <i class="fas fa-external-link-alt"></i>
+                            Enroll Now
+                        </a>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
     }
+
+    // Display recommended mentors
+    if (mentorsGrid) {
+        mentorsGrid.innerHTML = recommendedMentors.map(mentor => `
+            <div class="mentor">
+                <div class="mentor-header">
+                    <h4>${mentor.name || 'Mentor Name'}</h4>
+                    <p class="mentor-title">${mentor.title || 'Mentor Title'}</p>
+                </div>
+                <p><strong>Expertise:</strong> ${mentor.expertise || 'N/A'}</p>
+                <p><strong>Experience:</strong> ${mentor.experience || 'N/A'}</p>
+                <p><strong>Specialization:</strong> ${mentor.specialization || 'N/A'}</p>
+                <button class="connect-btn">Connect with Mentor</button>
+            </div>
+        `).join('');
+    }
+    
+    // Scroll to the career path section
+    careerPathSection.scrollIntoView({ behavior: 'smooth' });
 }
 
-// Show error message
+// Function to show error messages
 function showError(message) {
     console.error('Error:', message);
     const errorDiv = document.createElement('div');
@@ -1136,7 +1171,7 @@ function showError(message) {
     }, 5000);
 }
 
-// Show success message
+// Function to show success messages
 function showSuccess(message) {
     console.log('Success:', message);
     const successDiv = document.createElement('div');

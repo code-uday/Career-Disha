@@ -41,24 +41,26 @@ async function generateCareerSuggestions(interests, qualification, field) {
             "careerPath": {
                 "title": "Career Path Title",
                 "description": "Detailed description of the career path",
-                "recommendedRoles": [
-                    {
-                        "title": "Role Title",
-                        "description": "Role description",
-                        "salary": "Salary range",
-                        "skills": ["Required skills"],
-                        "nextSteps": ["Next steps for career progression"]
-                    }
-                ],
-                "recommendedCourses": [
-                    {
-                        "title": "Course Title",
-                        "provider": "Course Provider",
-                        "level": "Course Level",
-                        "duration": "Course Duration"
-                    }
-                ]
-            }
+                "recommendedRoles": ["Role 1", "Role 2", "Role 3"],
+                "requiredSkills": ["Skill 1", "Skill 2", "Skill 3"]
+            },
+            "recommendedCourses": [
+                {
+                    "title": "Course Title",
+                    "provider": "Course Provider",
+                    "level": "Course Level",
+                    "duration": "Course Duration"
+                }
+            ],
+            "recommendedMentors": [
+                {
+                    "name": "Mentor Name",
+                    "title": "Mentor Title",
+                    "expertise": "Mentor Expertise",
+                    "experience": "Years of Experience",
+                    "specialization": "Specialization Area"
+                }
+            ]
         }
 
         Make the suggestions specific and actionable, focusing on roles that combine the user's interests and qualifications.`;
@@ -81,12 +83,48 @@ async function generateCareerSuggestions(interests, qualification, field) {
                 jsonText = jsonText.split('```')[1].split('```')[0].trim();
             }
             
-            const careerData = JSON.parse(jsonText);
+            // Try to parse the JSON
+            let careerData;
+            try {
+                careerData = JSON.parse(jsonText);
+            } catch (parseError) {
+                console.error('Error parsing JSON:', parseError);
+                console.log('Attempting to fix JSON format...');
+                
+                // Try to fix common JSON formatting issues
+                jsonText = jsonText.replace(/(\w+):/g, '"$1":');
+                jsonText = jsonText.replace(/'/g, '"');
+                
+                try {
+                    careerData = JSON.parse(jsonText);
+                } catch (fixError) {
+                    console.error('Failed to fix JSON:', fixError);
+                    throw new Error('Failed to parse career suggestions from API');
+                }
+            }
+            
             console.log('Parsed career data:', careerData);
             
             // Validate the career data structure
             if (!careerData || !careerData.careerPath) {
                 throw new Error('Invalid career data structure received from API');
+            }
+            
+            // Ensure required fields exist
+            if (!careerData.careerPath.recommendedRoles) {
+                careerData.careerPath.recommendedRoles = [];
+            }
+            
+            if (!careerData.careerPath.requiredSkills) {
+                careerData.careerPath.requiredSkills = [];
+            }
+            
+            if (!careerData.recommendedCourses) {
+                careerData.recommendedCourses = [];
+            }
+            
+            if (!careerData.recommendedMentors) {
+                careerData.recommendedMentors = [];
             }
             
             return careerData;

@@ -100,20 +100,36 @@ const careerAPI = {
     console.log('Request data:', data);
     console.log('Auth token:', localStorage.getItem('token'));
     
-    const response = await fetch(`${API_URL}/career/suggestions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify(data)
-    });
-    
-    console.log('API response status:', response.status);
-    const responseData = await handleResponse(response);
-    console.log('API response data:', responseData);
-    
-    return responseData;
+    try {
+      const response = await fetch(`${API_URL}/career/suggestions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(data)
+      });
+      
+      console.log('API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API error response:', errorData);
+        throw new Error(errorData.message || 'Failed to get career suggestions');
+      }
+      
+      const responseData = await response.json();
+      console.log('API response data:', responseData);
+      
+      if (!responseData.success) {
+        throw new Error(responseData.message || 'Failed to get career suggestions');
+      }
+      
+      return responseData;
+    } catch (error) {
+      console.error('Error in getSuggestions:', error);
+      throw error;
+    }
   },
 };
 

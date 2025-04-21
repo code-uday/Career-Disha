@@ -73,10 +73,23 @@ exports.getCareerSuggestions = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    // Ensure the response has the correct structure
+    const formattedResponse = {
       success: true,
-      data: careerData
-    });
+      data: {
+        careerPath: {
+          title: careerData.careerPath.title || 'Career Path',
+          description: careerData.careerPath.description || 'No description available',
+          recommendedRoles: careerData.careerPath.recommendedRoles || [],
+          requiredSkills: careerData.careerPath.requiredSkills || []
+        },
+        recommendedCourses: careerData.recommendedCourses || [],
+        recommendedMentors: careerData.recommendedMentors || []
+      }
+    };
+
+    console.log('Sending formatted response:', formattedResponse);
+    res.status(200).json(formattedResponse);
   } catch (error) {
     console.error('Error in getCareerSuggestions:', error);
     res.status(500).json({
@@ -87,37 +100,117 @@ exports.getCareerSuggestions = async (req, res) => {
   }
 };
 
-// Helper function to get recommended courses based on interests
+// Helper function to get recommended courses based on user interests
 function getRecommendedCourses(interests) {
-  // This would typically come from a database
-  const coursesDatabase = {
-    "Web Development": [
-      { title: "Complete Web Development Bootcamp", provider: "Udemy", level: "Beginner to Advanced", duration: "40 hours" },
-      { title: "Advanced JavaScript Concepts", provider: "Coursera", level: "Intermediate", duration: "8 weeks" },
-      { title: "React - The Complete Guide", provider: "Udemy", level: "Intermediate", duration: "35 hours" }
-    ],
-    "Data Science": [
-      { title: "Data Science and Machine Learning", provider: "Coursera", level: "Intermediate", duration: "12 weeks" },
-      { title: "Python for Data Science", provider: "edX", level: "Beginner", duration: "10 weeks" },
-      { title: "Advanced Machine Learning", provider: "Udacity", level: "Advanced", duration: "16 weeks" }
-    ],
-    "Business": [
-      { title: "Business Strategy", provider: "Coursera", level: "Intermediate", duration: "6 weeks" },
-      { title: "Digital Marketing", provider: "Udemy", level: "Beginner to Advanced", duration: "25 hours" },
-      { title: "Project Management Professional", provider: "PMI", level: "Advanced", duration: "12 weeks" }
-    ]
-  };
+    const coursesDatabase = {
+        "Web Development": [
+            {
+                title: "The Complete Web Development Bootcamp",
+                provider: "Udemy",
+                level: "Beginner to Advanced",
+                duration: "44 hours",
+                link: "https://www.udemy.com/course/the-complete-web-development-bootcamp/"
+            },
+            {
+                title: "Full Stack Web Development",
+                provider: "freeCodeCamp",
+                level: "Beginner to Advanced",
+                duration: "Self-paced",
+                link: "https://www.freecodecamp.org/learn/full-stack-web-development/"
+            }
+        ],
+        "Data Science": [
+            {
+                title: "Data Science Professional",
+                provider: "Coursera",
+                level: "Intermediate",
+                duration: "8 months",
+                link: "https://www.coursera.org/professional-certificates/google-data-analytics"
+            },
+            {
+                title: "Data Analysis with Python",
+                provider: "freeCodeCamp",
+                level: "Beginner to Intermediate",
+                duration: "Self-paced",
+                link: "https://www.freecodecamp.org/learn/data-analysis-with-python/"
+            }
+        ],
+        "Business": [
+            {
+                title: "Business Analytics",
+                provider: "edX",
+                level: "Intermediate",
+                duration: "12 weeks",
+                link: "https://www.edx.org/course/business-analytics"
+            },
+            {
+                title: "Digital Marketing",
+                provider: "Google Digital Garage",
+                level: "Beginner",
+                duration: "40 hours",
+                link: "https://learndigital.withgoogle.com/digitalgarage/course/digital-marketing"
+            }
+        ],
+        "UX/UI Design": [
+            {
+                title: "Google UX Design",
+                provider: "Coursera",
+                level: "Beginner",
+                duration: "6 months",
+                link: "https://www.coursera.org/professional-certificates/google-ux-design"
+            },
+            {
+                title: "UI/UX Design Specialization",
+                provider: "Coursera",
+                level: "Beginner to Intermediate",
+                duration: "6 months",
+                link: "https://www.coursera.org/specializations/ui-ux-design"
+            }
+        ],
+        "Cybersecurity": [
+            {
+                title: "Cybersecurity Fundamentals",
+                provider: "edX",
+                level: "Beginner",
+                duration: "8 weeks",
+                link: "https://www.edx.org/course/cybersecurity-fundamentals"
+            },
+            {
+                title: "CompTIA Security+",
+                provider: "CompTIA",
+                level: "Intermediate",
+                duration: "Self-paced",
+                link: "https://www.comptia.org/certifications/security"
+            }
+        ],
+        "Cloud Computing": [
+            {
+                title: "AWS Cloud Practitioner",
+                provider: "Amazon Web Services",
+                level: "Beginner",
+                duration: "Self-paced",
+                link: "https://aws.amazon.com/certification/certified-cloud-practitioner/"
+            },
+            {
+                title: "Google Cloud Fundamentals",
+                provider: "Google Cloud",
+                level: "Beginner",
+                duration: "Self-paced",
+                link: "https://cloud.google.com/certification/cloud-digital-leader"
+            }
+        ]
+    };
 
-  const recommendedCourses = [];
+    const recommendedCourses = [];
   
-  if (interests && interests.length > 0) {
-    interests.forEach(interest => {
-      if (coursesDatabase[interest]) {
-        recommendedCourses.push(...coursesDatabase[interest]);
-      }
-    });
-  }
+    if (interests && interests.length > 0) {
+      interests.forEach(interest => {
+        if (coursesDatabase[interest]) {
+          recommendedCourses.push(...coursesDatabase[interest]);
+        }
+      });
+    }
 
-  // Return top 5 courses
-  return recommendedCourses.slice(0, 5);
+    // Return top 5 courses
+    return recommendedCourses.slice(0, 5);
 } 
