@@ -130,6 +130,20 @@ const careerAPI = {
       console.error('Error in getSuggestions:', error);
       throw error;
     }
+    const response = await fetch(`${API_URL}/career/suggestions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(data)
+    });
+    
+    console.log('API response status:', response.status);
+    const responseData = await handleResponse(response);
+    console.log('API response data:', responseData);
+    
+    return responseData;
   },
 };
 

@@ -676,7 +676,7 @@ function setupFormHandlers() {
                 });
 
                 console.log('Career suggestions response:', response);
-                
+
                 // Reset button state
                 submitButton.textContent = originalButtonText;
                 submitButton.disabled = false;
@@ -696,7 +696,12 @@ function setupFormHandlers() {
                 const submitButton = careerForm.querySelector('button[type="submit"]');
                 submitButton.textContent = 'Generate Career Path';
                 submitButton.disabled = false;
-            }
+                displayCareerPath(response.data);
+            } 
+            // catch (error) {
+            //     console.error(' Error getting career suggestions:', error);
+            //     showError('An error occurred while getting career suggestions. Please try again.');
+            // }
         });
     } else {
         console.error('Career form not found in the DOM');
@@ -1152,6 +1157,89 @@ function displayCareerPath(careerData) {
 }
 
 // Function to show error messages
+// Display career path
+function displayCareerPath(careerPath) {
+    console.log('Displaying career path:', careerPath);
+    const careerPathSection = document.getElementById('careerPath');
+    if (!careerPathSection) {
+        console.error('Career path section not found');
+        return;
+    }
+
+    try {
+        // Remove the hidden class to make the container visible
+        careerPathSection.classList.remove('hidden');
+        
+        // Check if we have the expected data structure
+        if (!careerPath || !careerPath.careerPath) {
+            console.error('Invalid career path data structure:', careerPath);
+            showError('Invalid career path data received');
+            return;
+        }
+
+        const { title, description, recommendedRoles, recommendedCourses } = careerPath.careerPath;
+        
+        // Create the HTML content
+        let html = `
+            <h2>${title || 'Career Path'}</h2>
+            <p>${description || 'No description available'}</p>
+        `;
+
+        // Add recommended roles if available
+        if (recommendedRoles && recommendedRoles.length > 0) {
+            html += `
+                <h3>Recommended Roles</h3>
+                <div class="roles">
+                    ${recommendedRoles.map(role => `
+                        <div class="role">
+                            <h4>${role.title || 'Role Title'}</h4>
+                            <p>${role.description || 'No description available'}</p>
+                            ${role.salary ? `<p><strong>Salary:</strong> ${role.salary}</p>` : ''}
+                            ${role.skills && role.skills.length > 0 ? `
+                                <h5>Required Skills:</h5>
+                                <ul>
+                                    ${role.skills.map(skill => `<li>${skill}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                            ${role.nextSteps && role.nextSteps.length > 0 ? `
+                                <h5>Next Steps:</h5>
+                                <ul>
+                                    ${role.nextSteps.map(step => `<li>${step}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Add recommended courses if available
+        if (recommendedCourses && recommendedCourses.length > 0) {
+            html += `
+                <h3>Recommended Courses</h3>
+                <div class="courses">
+                    ${recommendedCourses.map(course => `
+                        <div class="course">
+                            <h4>${course.title || 'Course Title'}</h4>
+                            ${course.provider ? `<p><strong>Provider:</strong> ${course.provider}</p>` : ''}
+                            ${course.level ? `<p><strong>Level:</strong> ${course.level}</p>` : ''}
+                            ${course.duration ? `<p><strong>Duration:</strong> ${course.duration}</p>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Update the career path section with the generated HTML
+        careerPathSection.innerHTML = html;
+        careerPathSection.style.display = 'block';
+    } catch (error) {
+        console.error('Error displaying career path:', error);
+        showError('An error occurred while displaying career suggestions');
+    }
+}
+
+// Show error message
 function showError(message) {
     console.error('Error:', message);
     const errorDiv = document.createElement('div');
@@ -1171,7 +1259,6 @@ function showError(message) {
     }, 5000);
 }
 
-// Function to show success messages
 function showSuccess(message) {
     console.log('Success:', message);
     const successDiv = document.createElement('div');
