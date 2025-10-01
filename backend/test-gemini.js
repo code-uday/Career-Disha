@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 // Initialize Gemini API
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -15,10 +16,8 @@ async function testGeminiAPI() {
   try {
     console.log('Testing Gemini API...');
     
-    // Use the correct model name for v1beta API
-    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
-    console.log('Gemini model initialized');
-
+    // Use REST v1 to avoid v1beta model limitations
+    const modelName = 'gemini-2.0-flash';
     const prompt = `Based on the following information, suggest a detailed career path:
     - Academic Qualification: Bachelor's Degree
     - Field of Study: Computer Science
@@ -51,13 +50,23 @@ async function testGeminiAPI() {
 
     Make the suggestions specific and actionable, focusing on roles that combine the user's interests and qualifications.`;
 
-    console.log('Sending prompt to Gemini API');
-    const result = await model.generateContent(prompt);
-    console.log('Received response from Gemini API');
-    
-    const response = await result.response;
-    const text = response.text();
-    console.log('Gemini API response text:', text);
+    console.log('Sending prompt to Gemini API (REST v1)');
+    const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+    const body = {
+        contents: [{ role: 'user', parts: [{ text: prompt }]}]
+    };
+    const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    });
+    if (!resp.ok) {
+        const errText = await resp.text();
+        throw new Error(`REST v1 error ${resp.status}: ${errText}`);
+    }
+    const data = await resp.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    console.log('Gemini REST v1 response text:', text);
     
     // Parse the JSON response
     try {

@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 // Initialize Gemini API
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -27,109 +28,82 @@ async function generateCareerSuggestions(interests, qualification, field) {
             throw new Error('Field of study is required');
         }
         
-        // Use the correct model name for v1beta API
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        console.log('Gemini model initialized');
+        // Prefer REST v1 to avoid v1beta model limitations in older SDKs
+        const modelName = 'gemini-2.0-flash';
 
-        const prompt = `Based on the following information, suggest a detailed career path:
-        - Academic Qualification: ${qualification}
-        - Field of Study: ${field}
-        - Interests: ${interests.join(', ')}
+        const prompt = `You are an expert career counselor.
+Return ONLY valid JSON (no markdown fences, no prose) matching exactly this schema:
+{
+  "careerPath": {
+    "title": string,
+    "description": string,
+    "recommendedRoles": string[],
+    "requiredSkills": string[]
+  },
+  "recommendedCourses": Array<{
+    "title": string,
+    "provider": string,
+    "level": string,
+    "duration": string,
+    "link"?: string
+  }>,
+  "recommendedMentors": Array<{
+    "name": string,
+    "title": string,
+    "expertise": string,
+    "experience": string,
+    "specialization": string
+  }>
+}
 
-        Please provide a structured response in JSON format with the following fields:
-        {
-            "careerPath": {
-                "title": "Career Path Title",
-                "description": "Detailed description of the career path",
-                "recommendedRoles": ["Role 1", "Role 2", "Role 3"],
-                "requiredSkills": ["Skill 1", "Skill 2", "Skill 3"]
-            },
-            "recommendedCourses": [
-                {
-                    "title": "Course Title",
-                    "provider": "Course Provider",
-                    "level": "Course Level",
-                    "duration": "Course Duration"
-                }
-            ],
-            "recommendedMentors": [
-                {
-                    "name": "Mentor Name",
-                    "title": "Mentor Title",
-                    "expertise": "Mentor Expertise",
-                    "experience": "Years of Experience",
-                    "specialization": "Specialization Area"
-                }
-            ]
+Inputs:
+- Academic Qualification: ${qualification}
+- Field of Study: ${field}
+- Interests: ${interests.join(', ')}
+
+Guidelines:
+- Be specific and actionable for an Indian job market context when possible.
+- Keep arrays between 3 and 7 items.
+- Ensure JSON is strictly valid.`;
+
+        console.log('Sending prompt to Gemini API (REST v1)');
+        const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+        const body = {
+            contents: [{ role: 'user', parts: [{ text: prompt }]}]
+        };
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        if (!resp.ok) {
+            const errText = await resp.text();
+            throw new Error(`REST v1 error ${resp.status}: ${errText}`);
         }
-
-        Make the suggestions specific and actionable, focusing on roles that combine the user's interests and qualifications.`;
-
-        console.log('Sending prompt to Gemini API');
-        const result = await model.generateContent(prompt);
-        console.log('Received response from Gemini API');
+        const data = await resp.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        console.log('Gemini REST v1 response text (truncated):', text?.slice(0, 200));
         
-        const response = await result.response;
-        const text = response.text();
-        console.log('Gemini API response text:', text);
-        
-        // Parse the JSON response
+        // Parse the JSON response (JSON mode)
         try {
-            // Clean up the response text to handle markdown code block formatting
-            let jsonText = text;
-            if (jsonText.includes('```json')) {
-                jsonText = jsonText.split('```json')[1].split('```')[0].trim();
-            } else if (jsonText.includes('```')) {
-                jsonText = jsonText.split('```')[1].split('```')[0].trim();
-            }
-            
-            // Try to parse the JSON
-            let careerData;
-            try {
-                careerData = JSON.parse(jsonText);
-            } catch (parseError) {
-                console.error('Error parsing JSON:', parseError);
-                console.log('Attempting to fix JSON format...');
-                
-                // Try to fix common JSON formatting issues
-                jsonText = jsonText.replace(/(\w+):/g, '"$1":');
-                jsonText = jsonText.replace(/'/g, '"');
-                
-                try {
-                    careerData = JSON.parse(jsonText);
-                } catch (fixError) {
-                    console.error('Failed to fix JSON:', fixError);
-                    throw new Error('Failed to parse career suggestions from API');
-                }
-            }
-            
-            console.log('Parsed career data:', careerData);
-            
-            // Validate the career data structure
+
+            const cleanText = text.replace(/```json|```/g, '').trim();
+
+            const careerData = JSON.parse(cleanText);
+            console.log('Parsed career data keys:', Object.keys(careerData || {}));
+
             if (!careerData || !careerData.careerPath) {
                 throw new Error('Invalid career data structure received from API');
             }
-            
-            // Ensure required fields exist
-            if (!careerData.careerPath.recommendedRoles) {
-                careerData.careerPath.recommendedRoles = [];
-            }
-            
-            if (!careerData.careerPath.requiredSkills) {
-                careerData.careerPath.requiredSkills = [];
-            }
-            
-            if (!careerData.recommendedCourses) {
-                careerData.recommendedCourses = [];
-            }
-            
-            if (!careerData.recommendedMentors) {
-                careerData.recommendedMentors = [];
-            }
-            
+
+            careerData.careerPath.recommendedRoles = careerData.careerPath.recommendedRoles || [];
+            careerData.careerPath.requiredSkills = careerData.careerPath.requiredSkills || [];
+            careerData.recommendedCourses = careerData.recommendedCourses || [];
+            careerData.recommendedMentors = careerData.recommendedMentors || [];
+
             return careerData;
         } catch (parseError) {
-            console.error('Error parsing Gemini response:', parseError);
+            console.error('Error parsing Gemini response (JSON mode):', parseError);
             throw new Error('Failed to parse career suggestions from API');
         }
     } catch (error) {
